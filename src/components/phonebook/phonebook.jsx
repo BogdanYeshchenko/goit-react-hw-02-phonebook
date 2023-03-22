@@ -1,7 +1,10 @@
 import { ContactForm } from './ContactForm/ContactForm';
 import { ContactList } from './ContactList/ContactList';
 import { Filter } from './Filter/Filter';
-import { nanoid } from 'nanoid';
+import css from './phonebook.module.css';
+
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const { Component } = require('react');
 
@@ -16,30 +19,20 @@ class PhoneBook extends Component {
       { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
     ],
     filter: '',
-    name: '',
-    number: '',
   };
 
-  handleFormEvent = e => {
-    const { name, value } = e.target;
-    this.setState({ [name]: value });
+  handleAddNewContact = value => {
+    const isNewContactNew = this.state.contacts.find(
+      el => el.name.toLowerCase() === value.name.toLowerCase()
+    );
+    const notify = () =>
+      toast.warn(`${value.name} is already in contacts.`, {
+        theme: 'dark',
+      });
 
-    console.log(this.getFilteredContacts());
-  };
-
-  handleFormSubmit = e => {
-    e.preventDefault();
-
-    this.setState(prev => {
-      return {
-        contacts: [
-          ...prev.contacts,
-          { id: nanoid(), name: [prev.name], number: [prev.number] },
-        ],
-        name: '',
-        number: '',
-      };
-    });
+    isNewContactNew
+      ? notify()
+      : this.setState(prev => ({ contacts: [...prev.contacts, value] }));
   };
 
   handleFilterChenge = e => {
@@ -53,25 +46,41 @@ class PhoneBook extends Component {
       contact.name.toLowerCase().includes(filter.toLowerCase())
     );
   };
-  //   const {users, submitSearch} = this.state
-  //   return users.filter(user => user.name.toLowerCase().includes(submitSearch.toLowerCase()))
+
+  hendleDeleteContact = id => {
+    const deleteContact = this.state.contacts.filter(
+      contact => contact.id === id
+    );
+    const deletName = deleteContact[0].name;
+
+    const notify = () =>
+      toast.warn(`${deletName} was delete.`, {
+        theme: 'dark',
+      });
+
+    notify();
+
+    this.setState(prev => ({
+      contacts: prev.contacts.filter(contact => contact.id !== id),
+    }));
+  };
 
   render = () => {
     return (
-      <div>
-        <h1>Phonebook</h1>
-        <ContactForm
-          onFormEvent={this.handleFormEvent}
-          state={this.state}
-          onFormSabmit={this.handleFormSubmit}
-        />
+      <div className={css.boockBox}>
+        <h1 className={css.boockTitle}>Phonebook</h1>
+        <ContactForm onAddContact={this.handleAddNewContact} />
 
-        <h2>Contacts</h2>
+        <h2 className={css.boockTitle}>Contacts</h2>
         <Filter
           onChangeFilter={this.handleFilterChenge}
           filterWord={this.state.filter}
         />
-        <ContactList contacts={this.getFilteredContacts()} />
+        <ContactList
+          contacts={this.getFilteredContacts()}
+          onDeleteContact={this.hendleDeleteContact}
+        />
+        <ToastContainer />
       </div>
     );
   };
